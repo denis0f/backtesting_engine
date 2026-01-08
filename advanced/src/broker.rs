@@ -6,9 +6,9 @@ use crate::broker::accounts::Account;
 pub mod accounts;
 
 
-struct Broker{
+pub struct Broker{
     name: String,
-    accounts: HashMap<u64, Account>,
+    pub accounts: HashMap<u64, Account>,
     id: u64
 }
 
@@ -20,12 +20,19 @@ impl Broker{
             id: 0
         }
     }
-    
-    pub fn create_account(&mut self, name: String) -> Option<&Account>{
+    fn update_id(&mut self){
         self.id+=1;
-        let account = Account::new(self.id, name);
+    }
+    fn update_accounts(&mut self, name: String, account: Account){
         self.accounts.insert(account.id, account);
 
-        self.accounts.get(&self.id)
     }
+    
+    pub fn create_account(&mut self, name: String) -> &mut Account{
+        self.id+=1;
+        let id = self.id;
+
+        self.accounts.entry(id).or_insert_with(|| Account::new(id, name))
+    }
+
 }

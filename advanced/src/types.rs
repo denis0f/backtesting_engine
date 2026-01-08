@@ -1,3 +1,5 @@
+use serde::Deserialize;
+
 #[derive(Debug)]
 pub enum OrderSide{
     Buy,
@@ -7,7 +9,6 @@ pub enum OrderSide{
 
 #[derive(Debug)]
 pub struct Order{
-    pub id: u64,
     pub symbol: String,
     pub side: OrderSide,
     pub volume: f64,
@@ -19,4 +20,12 @@ pub struct Position{
     pub symbol: String,
     pub volume: f64,
     pub type_: OrderSide
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Candlestick{
+    #[serde(rename = "Price")]
+    timestamp: String,
+    #[serde(rename = "Close")]
+    pub close: f64,
 }

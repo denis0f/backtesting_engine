@@ -29,7 +29,7 @@ impl Account {
         &self.positions
     }
 
-    pub fn execute(&mut self, order: Order, price: f64) -> Option<&Position> {
+    pub fn execute(&mut self, order: Order, price: f64) -> u64 {
         let cost = order.volume * price;
         self.balance -= cost;
         self.position_id_track += 1;
@@ -40,27 +40,41 @@ impl Account {
             type_: order.side,
         };
         self.positions.insert(self.position_id_track, position);
+        let pst = self.positions.get(&self.position_id_track).unwrap();
 
-        self.positions.get(&self.position_id_track)
+        println!("Executed Position: id: {}, symbol: {}, volume: {}, type: {:?}, price: {}", pst.id, pst.symbol, pst.volume, pst.type_, price);
+        println!("Account balance is {}", self.balance);
+        println!();
+
+        self.position_id_track
     }
-    pub fn close_position(&mut self, positions_id: u64, price: f64) -> Result<String, Box<dyn std::error::Error>> {
-        let position = self.positions.get(&positions_id);
-        let removed_position = match position {
-            Some(positions) => {
-                let proceeds = price * positions.volume;
-                self.balance += proceeds;
+    pub fn close_position(
+        &mut self,
+        position_id: u64,
+        price: f64,
+    ) -> Result<String, Box<dyn std::error::Error>> {
+        if let Some(position) = self.positions.remove(&position_id) {
+            let proceeds = price * position.volume;
+            self.balance += proceeds;
 
-                self.positions.remove(&positions_id)
-            }
-            _ => None
-        };
-
-        match removed_position{
-            Some(x) => {
-    Ok(format!("Closed Position; Symbol: {}, Id: {}, Volume: {}", &x.symbol, &x.id, &x.volume))
-            }
-            None => Ok(format!("Failed to remove the position confirm the id the try again."))
+            Ok(format!(
+                "Closed Position; Symbol: {}, Id: {}, Volume: {}, price {}, current balance is {}",
+                position.symbol, position.id, position.volume, price, self.balance
+            ))
+        } else {
+            Ok("Failed to remove the position. Confirm the ID and try again.".to_string())
         }
+    }
 
+    pub fn deposit(&mut self, amount: f64) {
+        if amount > 0.0 {
+            self.balance += amount;
+            println!(
+                "Deposited amount: {}, New balance is: {}",
+                amount, self.balance
+            );
+        } else {
+            println!("Amount should be greater than 0.");
+        }
     }
 }
